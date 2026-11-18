@@ -21,11 +21,13 @@ def create_app():
     def runs():
         payload=request.get_json(silent=True)
         if not isinstance(payload,dict): raise DomainError("BAD_BODY","请求需要对象")
-        params=payload.get("parameters",{})
+        params=payload.get("parameters")
+        sample=payload.get("sample","dirty.csv")
+        if params is None: params=pipeline.default_params(sample)
         if not isinstance(params,dict): raise DomainError("BAD_PARAMETERS","参数需要对象")
         raw=payload.get("csv")
         if raw is not None and not isinstance(raw,str): raise DomainError("BAD_CSV","CSV需要文本")
-        return pipeline.execute(raw.encode() if raw is not None else pipeline.load_sample(payload.get("sample","dirty.csv")),params)
+        return pipeline.execute(raw.encode() if raw is not None else pipeline.load_sample(sample),params)
     @application.post("/api/upload")
     def upload():
         file=request.files.get("file")

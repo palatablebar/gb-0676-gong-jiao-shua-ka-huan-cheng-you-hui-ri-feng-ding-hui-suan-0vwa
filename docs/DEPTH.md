@@ -31,10 +31,11 @@
 | TRAP-11 | 混合偏移 | 落错版本 | UTC归整 | `app/values.py` | `tests/test_m3.py::test_timezone_equal` |
 | TRAP-23 | 换乘截止点 | 重复优惠 | 截止点排除 | `app/modules/m5_discounts/rules.py` | `tests/test_m5.py::test_exact_window_excluded` |
 | TRAP-25 | 票价重叠 | 随意取版 | 冲突隔离 | `app/modules/m3_fares/rules.py` | `tests/test_m3.py::test_overlap_rejected` |
+| TRAP-27 | 跨调整时点换乘链 | 整链锁旧版或逐腿乱口径 | 刷卡时点按腿接管，四环节同版引用 | `app/modules/m3_fares/rules.py`、`app/modules/m4_journeys/rules.py`、`app/modules/m5_discounts/rules.py`、`app/modules/m7_settlement/rules.py` | `tests/test_fare_switch.py`、`tests/test_switch_api.py` |
 
 ## 对账规则
 
-输入原始逻辑行=最终采纳来源行+隔离来源行+重复行+空白行+分段表头。派生记录用_sources保存完整来源，因此分组不丢行。业务预期合计与上游申报合计之差等于逐行差异之和。结果按输入摘要、规则版本及参数产生唯一批次，事务写入；同源重跑只复用已有批次。
+输入原始逻辑行=最终采纳来源行+隔离来源行+重复行+空白行+分段表头。派生记录用_sources保存完整来源，因此分组不丢行。业务预期合计与上游申报合计之差等于逐行差异之和。结果按输入摘要、规则版本及参数产生唯一批次，事务写入；同源重跑只复用已有批次。跨票价版批次额外按票价版拆分应扣/实扣/差额（M6 `per_version`），M7 日结复用同一分版口径并封存票价窗快照，保证链、优惠、清分、日结同版；票价窗校验失败在写库前中止，上一版已发布结果保留。
 
 ## 已知不覆盖
 
